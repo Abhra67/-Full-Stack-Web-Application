@@ -25,6 +25,7 @@
             const token = localStorage.getItem("token");
             if (!token) {
                 alert("You must be logged in!");
+                window.location.href = "login.html";
                 return;
             }
 
@@ -34,14 +35,13 @@
                 });
 
                 const data = await response.json();
-
-                if (!Array.isArray(data)) {
-                    console.error("Unexpected response format:", data);
-                    return;
-                }
-
                 const gallery = document.getElementById("imageGallery");
-                gallery.innerHTML = data.map(img => `<img src="${img.url}" width="150">`).join("");
+
+                if (Array.isArray(data)) {
+                    gallery.innerHTML = data.map(img => `<img src="${img.url}" width="150">`).join("");
+                } else {
+                    console.error("Unexpected response format:", data);
+                }
             } catch (error) {
                 console.error("Error loading images:", error);
             }
@@ -69,7 +69,7 @@
                 const data = await response.json();
                 if (response.ok) {
                     alert("Image uploaded successfully!");
-                    fetchImages();
+                    fetchImages(); // Refresh the image gallery
                 } else {
                     alert(data.error);
                 }

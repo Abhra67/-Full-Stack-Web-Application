@@ -11,11 +11,9 @@ const app = express();
 app.use(express.json());
 app.use(cors());
 app.use("/uploads", express.static("uploads"));
-
-app.use(express.static('public')); // Serve static files from the 'public' directory
+app.use(express.static('public'));
 
 // Connect to MySQL
-
 const sequelize = new Sequelize(process.env.DB_NAME, process.env.DB_USER, process.env.DB_PASS, {
   host: process.env.DB_HOST,
   dialect: "mysql",
@@ -32,7 +30,6 @@ const User = sequelize.define("User", {
 // Define Image model
 const Image = sequelize.define("Image", {
   url: { type: DataTypes.STRING, allowNull: false },
-  uploadedAt: { type: DataTypes.DATE, defaultValue: Sequelize.NOW },
   userId: { type: DataTypes.INTEGER, allowNull: false }
 });
 
@@ -109,11 +106,11 @@ app.post("/upload", authenticate, upload.single("image"), async (req, res) => {
 app.get("/images", authenticate, async (req, res) => {
   try {
     const images = await Image.findAll({ where: { userId: req.user.id } });
-    res.json(images.length > 0 ? images : []);
+    res.json(images);
   } catch (error) {
     console.error("Failed to fetch images:", error);
     res.status(500).json({ error: "Failed to fetch images" });
   }
 });
 
-app.listen(5000, () => console.log(`Server running on port 5000`)); // Start the server
+app.listen(5000, () => console.log("Server running on port 5000"));
