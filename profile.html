@@ -1,0 +1,82 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Profile</title>
+    <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+    <h2>Welcome to Your Profile</h2>
+
+    <!-- Upload Form -->
+    <form id="uploadForm">
+        <input type="file" id="imageInput" accept="image/*" required>
+        <button type="submit">Upload Image</button>
+    </form>
+
+    <h3>Your Images</h3>
+    <div id="imageGallery"></div>
+
+    <script>
+        document.addEventListener("DOMContentLoaded", fetchImages);
+
+        async function fetchImages() {
+            const token = localStorage.getItem("token");
+            if (!token) {
+                alert("You must be logged in!");
+                return;
+            }
+
+            try {
+                const response = await fetch("http://localhost:5000/images", {
+                    headers: { "Authorization": token }
+                });
+
+                const data = await response.json();
+
+                if (!Array.isArray(data)) {
+                    console.error("Unexpected response format:", data);
+                    return;
+                }
+
+                const gallery = document.getElementById("imageGallery");
+                gallery.innerHTML = data.map(img => `<img src="${img.url}" width="150">`).join("");
+            } catch (error) {
+                console.error("Error loading images:", error);
+            }
+        }
+
+        document.getElementById('uploadForm').addEventListener('submit', async (e) => {
+            e.preventDefault();
+
+            const token = localStorage.getItem("token");
+            if (!token) {
+                alert("You must be logged in!");
+                return;
+            }
+
+            const formData = new FormData();
+            formData.append("image", document.getElementById("imageInput").files[0]);
+
+            try {
+                const response = await fetch("http://localhost:5000/upload", {
+                    method: "POST",
+                    headers: { "Authorization": token },
+                    body: formData
+                });
+
+                const data = await response.json();
+                if (response.ok) {
+                    alert("Image uploaded successfully!");
+                    fetchImages();
+                } else {
+                    alert(data.error);
+                }
+            } catch (error) {
+                console.error("Upload failed:", error);
+            }
+        });
+    </script>
+</body>
+</html>
